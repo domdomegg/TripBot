@@ -3,8 +3,8 @@
   "description": "Get live London transport information",
   "private": true,
   "dependencies": {
-    "actions-on-google": "^1.1.1",
-    "firebase-admin": "^4.2.1",
-    "firebase-functions": "^0.5.7"
+    "actions-on-google": "latest",
+    "firebase-admin": "latest",
+    "firebase-functions": "latest"
   }
 }
