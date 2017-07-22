@@ -4,6 +4,10 @@ const ApiAiApp = require('actions-on-google').ApiAiApp;
 const functions = require('firebase-functions');
 const https = require('https');
 
+const MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN = 5;
+// 15 line limit in basic card
+const MAX_BUS_ARRIVALS_RETURNED_SCREEN = 15;
+
 exports.tripBot = functions.https.onRequest((request, response) => {
 	const app = new ApiAiApp({request: request, response: response});
 
@@ -98,7 +102,6 @@ exports.tripBot = functions.https.onRequest((request, response) => {
             });
         } else {
             let url = 'https://api.tfl.gov.uk/Line/' + [undergroundLines,busLines].join() +'/Status?detail=false';
-            console.log(url);
 
             getJSON(url, function (data) {
                 // Sort lines into good and bad service
@@ -157,12 +160,161 @@ exports.tripBot = functions.https.onRequest((request, response) => {
         }
     }
 
+	function busArrivals(app) {
+		let busLine = app.getArgument('bus-line')
+        let busStopSms = app.getArgument('bus-stop-sms');
+        let busStopAddress = app.getArgument('bus-stop-address');
+
+		// Check we know where we are (or at least think we do)
+		if(busStopSms || busStopAddress) {
+			let url = 'https://api.tfl.gov.uk/StopPoint/Search/' + (busStopSms ? busStopSms : busStopAddress) + '?modes=bus';
+
+			getJSON(url, function (stop_data) {
+				if(busStopSms) {
+					if(busStopSms == "87287") {
+						askWithImage(randomFromArray([
+							'Sorry, I need the other 5 digit number on that sign for bus arrivals (the one on the white background).',
+							'I need the other 5 digit number - on the white background.'
+						]), 'Bus stop code example', 'https://upload.wikimedia.org/wikipedia/commons/d/dc/Quex_Road_%28Stop_N%29_Countdown_SMS_Code.jpg');
+					}
+
+					if (stop_data.total == 0) {
+						// Couldn't find it
+						let speech = randomFromArray(['Sorry - I couldn\'t find that stop. Are you sure the SMS code is correct?',
+													'Hmmm - I couldn\'t find that one. Can you repeat the SMS code?']);
+						askSimpleResponse(speech);
+					} else if (stop_data.total > 1) {
+						// Show list of bus stops
+
+					} else if (stop_data.total == 1) {
+						// Get arrival predictions
+						url = 'https://api.tfl.gov.uk/StopPoint/' + stop_data.matches[0].id + '/Arrivals';
+						getJSON(url, processArrivalsData);
+					}
+				} else {
+					// Present list of stops
+
+					// Get list of Naptan IDs
+					let stop_pairs = [];
+					let options = [];
+					stop_data.matches.forEach(function (stop_pair) {
+						stop_pairs.push(stop_pair.id);
+					});
+
+					// Get individual stops data
+					url = 'https://api.tfl.gov.uk/StopPoint/' + stop_pairs.join() + '?includeCrowdingData=false';
+					getJSON(url, function (stops_data) {
+						if(Array.isArray(stops_data)) {
+							stops_data.forEach(function (stop_pair) {
+								stop_pair.children.forEach(function (stop) {
+									options.push({
+										selectionKey: stop.id,
+										title: (stop.commonName + (stop.stopLetter ? ' (' + stop.stopLetter + ')' : '')),
+										synonyms: [stop.stopLetter, stop.indicator]
+									});
+								});
+							});
+						} else {
+							stops_data.children.forEach(function (stop) {
+								options.push({
+									selectionKey: stop.id,
+									title: (stop.commonName + ' (' + stop.stopLetter + ')'),
+									synonyms: [stop.stopLetter, stop.indicator]
+								});
+							});
+						};
+
+						let speech = 'Which stop do you want arrivals information for?';
+						let title = 'Bus stops';
+
+						app.setContext('bus_arrivals_list_followup');
+						askWithList(speech, title, options);
+					});
+				}
+			});
+		} else {
+			// Prompt the user for a sms location code
+			let speech = randomFromArray(['What\'s the name of your bus stop or its 5 digit bus stop code? It\'s on the bus stop pole, marked "For next bus information"',
+										'What\'s the name of the bus stop or its bus stop code? The bus stop code is the 5-digit number on a sign at the bus stop.',
+										'What\'s your bus stop\'s name it\'s bus stop code? It\'s the 5-digit number attached to the bus stop post.']);
+			let imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/dc/Quex_Road_%28Stop_N%29_Countdown_SMS_Code.jpg';
+			let imageDesc = 'Countdown SMS code example';
+
+			askWithImage(speech, imageDesc, imageUrl);
+		}
+	}
+
+	function processArrivalsData(arrivals_data) {
+		if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+			let speech = 'Sure. Here are the next buses arriving at ' + arrivals_data[0].stationName;
+			let title = 'Bus arrivals';
+			let text = 'Unfortuantely live arrivals are not available at that stop at the moment.'
+
+			if(arrivals_data.length != 0) {
+				text = '';
+
+				title = arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop ' + arrivals_data[0].platformName + ')' : '');
+
+				// Order bus arrivals by timeToStation
+				arrivals_data.sort(function (a, b) {
+					return a.timeToStation - b.timeToStation;
+				});
+
+				// Loop through buses and add them to speech
+				let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_SCREEN;
+				for(let i = 0; i < busArrivalsReturned; i++) {
+					text += arrivals_data[i].lineName + ' to ' + arrivals_data[i].destinationName + ': ' + (arrivals_data[i].timeToStation < 90 ? 'Due  \n' : Math.round(arrivals_data[i].timeToStation / 60) + ' minutes  \n');
+				}
+			}
+
+			let destinationName = 'TfL Live arrivals';
+			// let suggestionUrl = 'https://tfl.gov.uk/bus/stop/' + stop_data.matches[0].id + '/' + stop_data.matches[0].name.toLowerCase().replace(/\s+/g, '-');
+			let suggestionUrl = 'https://tfl.gov.uk/travel-information/stations-stops-and-piers/';
+			askWithBasicCardAndLink(speech, title, text, destinationName, suggestionUrl);
+		} else {
+			let speech = 'Unfortuantely live arrivals are not available at that stop at the moment.';
+			if (arrivals_data.length != 0) {
+				speech = '<speak>At ' + arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop <say-as interpret-as="characters">' + arrivals_data[0].platformName + '</say-as>) ' : '');
+
+				// Order bus arrivals by timeToStation
+				arrivals_data.sort(function (a, b) {
+					return a.timeToStation - b.timeToStation;
+				});
+
+				// Loop through buses and add them to speech
+				let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN;
+				for(let i = 0; i < busArrivalsReturned; i++) {
+					speech += 'a ' + (arrivals_data[i].lineName.length > 2 ? '<say-as interpret-as="digits">' + arrivals_data[i].lineName + '</say-as>' : arrivals_data[i].lineName) + (arrivals_data[i].timeToStation < 90 ? ' is due' : ' is in ' + Math.round(arrivals_data[i].timeToStation / 60) + ' minutes');
+					if(i < busArrivalsReturned - 2) {
+						speech += ', ';
+					} else if (i == busArrivalsReturned - 2) {
+						speech += ' and ';
+					}
+				}
+				speech += '. </speak>';
+			}
+
+			let destinationName = 'live arrivals';
+			// let suggestionUrl = 'https://tfl.gov.uk/bus/stop/' + stop_data.matches[0].id + '/' + stop_data.matches[0].name.toLowerCase().replace(/\s+/g, '-');
+			let suggestionUrl = 'https://tfl.gov.uk/travel-information/stations-stops-and-piers/';
+			askWithLink(speech, destinationName, suggestionUrl);
+		}
+	}
+
+	function busArrivalsListFollowup(app) {
+		let busStopId = app.getSelectedOption();
+		let url = 'https://api.tfl.gov.uk/StopPoint/' + busStopId + '/Arrivals';
+		getJSON(url, processArrivalsData);
+	}
+
 	const actionMap = new Map();
 	actionMap.set('air_quality', airQuality);
 	actionMap.set('minicab_lookup', minicabLookup);
 	actionMap.set('minicab_find', minicabFind);
 	actionMap.set('minicab_call', minicabCall);
 	actionMap.set('line_status', lineStatus);
+	actionMap.set('bus_arrivals', busArrivals);
+	actionMap.set('bus_arrivals_list_followup', busArrivalsListFollowup);
 	app.handleRequest(actionMap);
 
     function askSimpleResponse(speech) {
@@ -196,6 +348,23 @@ exports.tripBot = functions.https.onRequest((request, response) => {
             app.buildList(title)
              .addItems(optionItems));
     }
+
+	function askWithImage(speech, imageDesc, imageUrl) {
+		app.ask(app.buildRichResponse()
+			.addSimpleResponse(speech)
+			.addBasicCard(app.buildBasicCard().setImage(imageUrl, imageDesc))
+		);
+	}
+
+	function askWithBasicCardAndLink(speech, title, text, destinationName, suggestionUrl) {
+		app.ask(app.buildRichResponse()
+			.addSimpleResponse(speech)
+		    .addBasicCard(app.buildBasicCard(text)
+			    .setTitle(title)
+			    .addButton(destinationName, suggestionUrl)
+		    )
+		);
+	}
 });
 
 function getJSON(url, callback) {
