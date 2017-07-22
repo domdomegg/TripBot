@@ -9,7 +9,24 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 
 	function airQuality (app) {
         getJSON('https://api.tfl.gov.uk/AirQuality', function (data) {
-            let speech = 'Currently pollution is ' + lowerFirstChar(data.currentForecast[0].forecastBand) + ', and is forecast to be ' + lowerFirstChar(data.currentForecast[1].forecastBand) + '. ' + data.currentForecast[1].forecastSummary + '.';
+			let pollution = [lowerFirstChar(data.currentForecast[0].forecastBand),
+							lowerFirstChar(data.currentForecast[1].forecastBand)]
+
+			let speech = '';
+			if(pollution[0] == "low" && pollution[1] == "low") {
+				speech += randomFromArray(['Breathe easy! ', 'Good news! ', 'Hooray! '])
+			} else if (pollution[0] == "low" && pollution[1] != "low") {
+				speech += randomFromArray(['It\'s good now at least. ', 'There\'s good news and bad news. ']);
+			} else if (pollution[0] == "high" || pollution[1] == "high") {
+				speech += 'Oh dear...';
+			}
+
+			let connector = 'and';
+			if(pollution[0] != pollution[1]) {
+				connector = 'but';
+			}
+
+            speech += 'Currently pollution is ' + pollution[0] + ', ' + connector + ' is forecast to be ' + pollution[1] + '. ' + data.currentForecast[1].forecastSummary + '.';
             let destinationName = 'Londonair Forecast';
             let suggestionUrl = 'http://www.londonair.org.uk/LondonAir/Forecast/';
 
@@ -43,12 +60,12 @@ exports.tripBot = functions.https.onRequest((request, response) => {
                 askWithList(speech, title, options);
             })
         } else {
-            askSimpleResponse('Unfortuantely I can\'t get you nearby minicab operators without your location.');
+            askSimpleResponse('Unfortuantely I can\'t get you nearby minicab operators without your location 😞');
         }
     }
 
     function minicabCall (app) {
-        askSimpleResponse("Their number is " + app.getSelectedOption());
+        askSimpleResponse("Their number is " + app.getSelectedOption() + ". Unfortuantely I can't call it for you yet - sorry! 😞");
     }
 
     function lineStatus (app) {
@@ -201,4 +218,8 @@ function lowerFirstChar(str) {
 
 function upperFirstChar(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function randomFromArray(arr) {
+	return arr[Math.floor(Math.random() * arr.length)];
 }
