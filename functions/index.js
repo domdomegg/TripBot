@@ -60,7 +60,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
                 askWithList(speech, title, options);
             })
         } else {
-            askSimpleResponse('Unfortuantely I can\'t get you nearby minicab operators without your location 😞');
+            askSimpleResponse('Unfortunately I can\'t get you nearby minicab operators without your location 😞');
         }
     }
 
