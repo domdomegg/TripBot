@@ -308,6 +308,78 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 		getJSON(url, processArrivalsData);
 	}
 
+	function emissionsSurcharge(app) {
+		let numberplate = app.getRawInput().toUpperCase().match(/^([A-HK-PRSVWY][A-HJ-PR-Y])\s?([0][2-9]|[1-9][0-9])\s?[A-HJ-PR-Z]{3}$/);
+		if(numberplate) {
+			numberplate = numberplate[0];
+
+			// Remove spaces
+			numberplate = numberplate.replace(/\s/g, '');
+
+			getJSON('https://api.tfl.gov.uk/Vehicle/EmissionSurcharge?vrm=ll61knr', function (car) {
+				let speech = 'I couldn\'t find details for your vehicle';
+
+				if(car.compliance) {
+					speech = '';
+					if(car.make && car.model) {
+						speech += 'Your ' + toTitleCase(car.make + ' ' + car.model) + ' is ';
+					} else {
+						speech += 'Your car is ';
+					}
+
+					switch (car.compliance) {
+						case "Compliant":
+							speech += 'not subject to the T-Charge.';
+							break;
+						case "NotCompliant":
+							speech += 'subject to the T-Charge.';
+							break;
+						case "Exempt":
+							speech += 'exempt from the T-Charge.';
+							break;
+						default:
+							speech = 'I couldn\'t find details for your vehicle';
+					}
+
+					speech += ' Careful though - this is just a guide, and I can\'t accept liability for its accuracy.';
+				}
+
+				let destinationName = 'TfL Toxicity Charge';
+				let suggestionUrl = 'https://tfl.gov.uk/modes/driving/emissions-surcharge';
+				askWithLink(speech, destinationName, suggestionUrl);
+			});
+		} else {
+			// Ask for numberplate
+			app.setContext('emissions_surcharge_numberplate');
+			askSimpleResponse(randomFromArray([
+				'Sorry I couldn\'t pick out your numberplate there - could you say it again?',
+				'Sorry I didn\'t get your reg number. Could you say it again?',
+				'I couldn\'t understand your registration number. Please can you repeat it for me?'
+			]));
+		}
+	}
+
+	function carouselSelect(app) {
+		// Get the user's selection
+		let param = app.getContextArgument('actions_intent_option', 'OPTION').value;
+
+		// Compare the user's selections to each of the item's keys
+		if (param === 'bus_arrivals') {
+			busArrivals(app);
+		} else if (param === 'line_status') {
+			lineStatus(app);
+		} else if (param === 'air_quality') {
+			airQuality(app);
+		} else if (param === 'minicab_lookup') {
+			minicabLookup(app);
+		} else if (param === 'emissions_surcharge') {
+			app.setContext('emissions_surcharge_numberplate');
+			askSimpleResponse('Sure. What\'s your registration number?');
+		} else {
+			app.ask('Sorry, I didn\'t understand that. What is it that you want to do?');
+		}
+	}
+
 	const actionMap = new Map();
 	actionMap.set('air_quality', airQuality);
 	actionMap.set('minicab_lookup', minicabLookup);
@@ -316,6 +388,8 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 	actionMap.set('line_status', lineStatus);
 	actionMap.set('bus_arrivals', busArrivals);
 	actionMap.set('bus_arrivals_list_followup', busArrivalsListFollowup);
+	actionMap.set('emissions_surcharge', emissionsSurcharge);
+	actionMap.set('carousel_select', carouselSelect);
 	app.handleRequest(actionMap);
 
     function askSimpleResponse(speech) {
@@ -388,6 +462,10 @@ function lowerFirstChar(str) {
 
 function upperFirstChar(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function toTitleCase(str) {
+	return str.toLowerCase().split(' ').map(upperFirstChar).join(' ');
 }
 
 function randomFromArray(arr) {
