@@ -39,6 +39,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 	}
 
     function minicabLookup (app) {
+		app.setContext('request_location_minicab');
         app.askForPermission("To find nearby licensed minicab operators",
         app.SupportedPermissions.DEVICE_PRECISE_LOCATION);
     }
@@ -64,12 +65,12 @@ exports.tripBot = functions.https.onRequest((request, response) => {
                 askWithList(speech, title, options);
             })
         } else {
-            askSimpleResponse('Unfortunately I can\'t get you nearby minicab operators without your location 😞');
+            askSimpleResponse('Unfortunately I can\'t get you nearby minicab operators without your location');
         }
     }
 
     function minicabCall (app) {
-        askSimpleResponse("Their number is " + app.getSelectedOption() + ". Unfortuantely I can't call it for you yet - sorry! 😞");
+        askSimpleResponse("Their number is " + app.getSelectedOption() + ". Unfortuantely I can't call it for you yet - sorry!");
     }
 
     function lineStatus (app) {
@@ -77,7 +78,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
         let undergroundLines = app.getArgument('underground-line');
 
         // If no arguments, check tube, dlr, tfl rail and overground by default
-        if(busLines.length == 0 && undergroundLines.length == 0) {
+        if(!(busLines || undergroundLines)) {
             getJSON('https://api.tfl.gov.uk/Line/Mode/tube%2Cdlr%2Ctflrail%2Coverground/Status?detail=false', function (data) {
                 let nonGoodServiceLines = [];
 
