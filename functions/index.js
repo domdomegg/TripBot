@@ -316,7 +316,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			// Remove spaces
 			numberplate = numberplate.replace(/\s/g, '');
 
-			getJSON('https://api.tfl.gov.uk/Vehicle/EmissionSurcharge?vrm=ll61knr', function (car) {
+			getJSON('https://api.tfl.gov.uk/Vehicle/EmissionSurcharge?vrm=' + numberplate, function (car) {
 				let speech = 'I couldn\'t find details for your vehicle';
 
 				if(car.compliance) {
@@ -330,20 +330,24 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 					switch (car.compliance) {
 						case "Compliant":
 							speech += 'not subject to the T-Charge.';
+							speech += ' Careful though - this is just a guide, and I can\'t accept liability for its accuracy. Do you want to check another vehicle?';
 							break;
 						case "NotCompliant":
 							speech += 'subject to the T-Charge.';
+							speech += ' Careful though - this is just a guide, and I can\'t accept liability for its accuracy. Do you want to check another vehicle?';
 							break;
 						case "Exempt":
 							speech += 'exempt from the T-Charge.';
+							speech += ' Careful though - this is just a guide, and I can\'t accept liability for its accuracy. Do you want to check another vehicle?';
 							break;
 						default:
-							speech = 'I couldn\'t find details for your vehicle';
+							speech = 'I couldn\'t find details for your vehicle with registration <say-as interpret-as="characters">' + registration + '</say-as>. Do you want to try again?';
 					}
-
-					speech += ' Careful though - this is just a guide, and I can\'t accept liability for its accuracy.';
+				} else {
+					speech = 'I couldn\'t find details for your vehicle with registration <say-as interpret-as="characters">' + registration + '</say-as>. Do you want to try again?';
 				}
 
+				app.setContext('emissions_surcharge_tryagain');
 				let destinationName = 'TfL Toxicity Charge';
 				let suggestionUrl = 'https://tfl.gov.uk/modes/driving/emissions-surcharge';
 				askWithLink(speech, destinationName, suggestionUrl);
