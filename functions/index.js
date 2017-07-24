@@ -19,7 +19,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			let speech = '';
 			if(pollution[0] == "low" && pollution[1] == "low") {
 				speech += randomFromArray(['Breathe easy! ', 'Good news! ', 'Hooray! '])
-			} else if (pollution[0] == "low" && pollution[1] != "low") {
+			} else if (pollution[0] == "low" && pollution[1] != "low" && pollution[1] != "none") {
 				speech += randomFromArray(['It\'s good now at least. ', 'There\'s good news and bad news. ']);
 			} else if (pollution[0] == "high" || pollution[1] == "high") {
 				speech += 'Oh dear...';
@@ -30,12 +30,13 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				connector = 'but';
 			}
 
-            speech += 'Currently pollution is ' + pollution[0] + ', ' + connector + ' is forecast to be ' + pollution[1] + '. ' + data.currentForecast[1].forecastSummary + '.';
+            speech += 'Currently pollution is ' + pollution[0] + (pollution[1] != "none" ? ', ' + connector + ' is forecast to be ' + pollution[1] : '') + '. ' + data.currentForecast[1].forecastSummary + '.';
             let destinationName = 'Londonair Forecast';
             let suggestionUrl = 'http://www.londonair.org.uk/LondonAir/Forecast/';
+			let suggestions = ['Do I pay the T-Charge?', 'What else can I ask?'];
 
-            askWithLink(speech, destinationName, suggestionUrl);
-        })
+            askWithLinkAndSuggestions(speech, destinationName, suggestionUrl, suggestions);
+        });
 	}
 
     function minicabLookup (app) {
