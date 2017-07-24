@@ -61,105 +61,113 @@ exports.tripBot = functions.https.onRequest((request, response) => {
                 })
 
                 let speech = 'Which of these do you want to call?';
-                let title = 'Licensed minicab operators';
+                let title = 'Minicab operators';
+
+				if (!app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+					speech += ' ';
+					options.forEach(function (option) {
+						speech += option.title + '. ';
+					});
+				}
 
                 askWithList(speech, title, options);
-            })
+            });
         } else {
-            askSimpleResponse('Unfortunately I can\'t get you nearby minicab operators without your location');
+            askSimpleResponseWithSuggestions('Unfortunately I can\'t get you nearby minicab operators without your location.', ['What else can I ask?']);
         }
     }
 
     function minicabCall (app) {
-        askSimpleResponse("Their number is " + app.getSelectedOption() + ". Unfortuantely I can't call it for you yet - sorry!");
+        askSimpleResponseWithSuggestions("Their number is " + app.getSelectedOption() + ". Unfortuantely I can't call it for you yet - sorry!", ['What else can I ask?']);
     }
 
     function lineStatus (app) {
-        let busLines = app.getArgument('bus-line')
-        let undergroundLines = app.getArgument('underground-line');
+		if(app.getRawInput().toUpperCase().match(/^([A-HK-PRSVWY][A-HJ-PR-Y])\s?([0][2-9]|[1-9][0-9])\s?[A-HJ-PR-Z]{3}$/)) {
+			emissionsSurcharge(app);
+			return false;
+		}
 
-        // If no arguments, check tube, dlr, tfl rail and overground by default
-        if(!(busLines || undergroundLines)) {
-            getJSON('https://api.tfl.gov.uk/Line/Mode/tube%2Cdlr%2Ctflrail%2Coverground/Status?detail=false', function (data) {
-                let nonGoodServiceLines = [];
+        let busLines = app.getArgument('bus-line') || [];
+        let undergroundLines = app.getArgument('underground-line') || [];
 
-                // Go through each Line. If it is not running a good service (10),
-                // add note to the nonGoodServiceLinesString
-                let nonGoodServiceLinesString = '';
-                data.forEach(function(line) {
-                    if (line.lineStatuses[0].statusSeverity != 10) {
-                        nonGoodServiceLinesString += line.lineStatuses[0].reason.split('.')[0] + '. ';
-                    };
-                })
+		let url = 'https://api.tfl.gov.uk/Line/Mode/tube%2Ctflrail%2Cdlr%2Coverground/Status?detail=false';
+		if(busLines.length + undergroundLines.length > 0) {
+            url = 'https://api.tfl.gov.uk/Line/' + [undergroundLines,busLines].join() +'/Status?detail=false';
+		}
 
-                let speech = 'There is a good service operating on all London Underground lines.';
-
-                if (nonGoodServiceLinesString != '') {
-                    speech = nonGoodServiceLinesString + 'There is a good service operating on all other London Underground lines.';
-                }
-
-                let destinationName = 'TfL Status Updates'
-                let suggestionUrl = 'https://tfl.gov.uk/tube-dlr-overground/status/'
-                askWithLink(speech, destinationName, suggestionUrl);
-            });
-        } else {
-            let url = 'https://api.tfl.gov.uk/Line/' + [undergroundLines,busLines].join() +'/Status?detail=false';
-
-            getJSON(url, function (data) {
-                // Sort lines into good and bad service
-                let badServiceLines = [];
-                let goodServiceLines = [];
-                data.forEach(function (line) {
-                    if(line.lineStatuses[0].statusSeverityDescription == 'Good Service') {
-                        goodServiceLines.push({
-                            name: line.name,
-                            modeName: line.modeName
-                        });
-                    } else {
-                        badServiceLines.push({
-                            name: line.name,
-                            modeName: line.modeName,
-                            description: line.lineStatuses[0].statusSeverityDescription,
-                            reason: (line.lineStatuses[0].reason.split('.')[0] + '. ' || null)
-                        });
-                    }
-                });
-
-                let speech = '';
-
-                // Bad service lines
-                badServiceLines.forEach(function (line) {
-                    speech += line.reason;
-                });
-
-                // Good service lines
-                speech += 'There is a good service operating on the '
-                goodServiceLines = goodServiceLines.map(function (line) {
-                    return line.name + ((line.modeName == 'tube') ? ' line' : (line.modeName == 'bus') ? ' bus' : '');
-                });
-                if(goodServiceLines.length > 1) {
-                    speech += goodServiceLines.slice(0, -1).join(', ') + ' and ' + goodServiceLines[goodServiceLines.length - 1];
+        getJSON(url, function (data) {
+            // Sort lines into good and bad service
+            let badServiceLines = [];
+            let goodServiceLines = [];
+            data.forEach(function (line) {
+                if(line.lineStatuses[0].statusSeverityDescription == 'Good Service') {
+                    goodServiceLines.push({
+                        name: line.name,
+                        modeName: line.modeName
+                    });
                 } else {
-                    speech += goodServiceLines[0];
+                    badServiceLines.push({
+                        name: line.name,
+                        modeName: line.modeName,
+                        description: line.lineStatuses[0].statusSeverityDescription,
+                        reason: (line.lineStatuses[0].reason.split('.')[0] + '. ' || null)
+                    });
                 }
-
-                // URL: use default, but if only one bus input link to that bus's page
-                // If only multiple buses, link to the bus status page
-                let destinationName = 'TfL Status Updates';
-                let suggestionUrl = 'https://tfl.gov.uk/tube-dlr-overground/status/';
-                if(undergroundLines.length == 0) {
-                    if(busLines.length == 1) {
-                        destinationName = 'TfL ' + busLines[0].toUpperCase() + ' Bus Status';
-                        suggestionUrl = 'https://tfl.gov.uk/bus/status/?input=' + busLines[0];
-                    } else {
-                        destinationName = 'TfL Bus Updates';
-                        suggestionUrl = 'https://tfl.gov.uk/bus/status/';
-                    }
-                }
-
-                askWithLink(speech, destinationName, suggestionUrl);
             });
-        }
+
+            let speech = '';
+			let text = '';
+			let title = 'Status updates';
+
+            // Bad service lines
+            badServiceLines.forEach(function (line) {
+                speech += line.name + ((line.modeName == 'tube') ? ' line' : (line.modeName == 'bus') ? ' bus' : '') + ": " +  line.description + ". ";
+				text += line.reason + '  \n  \n';
+			});
+
+			if(goodServiceLines.length > 0) {
+				// Good service lines
+	            speech += 'There is a good service on the '
+	            goodServiceLines = goodServiceLines.map(function (line) {
+	                return line.name + ((line.modeName == 'tube') ? ' line' : (line.modeName == 'bus') ? ' bus' : '');
+	            });
+	            if(goodServiceLines.length > 1) {
+	                speech += goodServiceLines.slice(0, -1).join(', ') + ' and the ' + goodServiceLines[goodServiceLines.length - 1];
+	            } else {
+	                speech += goodServiceLines[0];
+	            }
+				speech += '.';
+
+				if (busLines.length + undergroundLines.length == 1) {
+					text = 'Good service';
+				} else if (text == '') {
+					text = speech;
+				}
+			}
+
+			speech = speech.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+			if (busLines.length + undergroundLines.length == 1) {
+				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for that line:</sub></speak>';
+			} else {
+				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for those lines:</sub></speak>';
+			}
+
+            // URL: use default, but if only one bus input link to that bus's page
+            // If only multiple buses, link to the bus status page
+            let destinationName = 'TfL Status Updates';
+            let suggestionUrl = 'https://tfl.gov.uk/tube-dlr-overground/status/';
+            if(undergroundLines.length == 0) {
+                if(busLines.length == 1) {
+                    destinationName = 'TfL ' + busLines[0].toUpperCase() + ' Bus Status';
+                    suggestionUrl = 'https://tfl.gov.uk/bus/status/?input=' + busLines[0];
+                } else if(busLines.length > 1) {
+                    destinationName = 'TfL Bus Updates';
+                    suggestionUrl = 'https://tfl.gov.uk/bus/status/';
+                }
+            }
+
+			askWithBasicCardAndLinkAndSuggestions(speech, title, text, destinationName, suggestionUrl, ['How\'s the ' + Math.floor(Math.random() * (99) + 1) + ' bus?', randomFromArray(['Central line status', 'Victoria line status', 'District & Northern lines']), 'What else can I ask?']);
+        });
     }
 
 	function busArrivals(app) {
@@ -182,12 +190,12 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 
 					if (stop_data.total == 0) {
 						// Couldn't find it
-						let speech = randomFromArray(['Sorry - I couldn\'t find that stop. Are you sure the SMS code is correct?',
+						let speech = randomFromArray(['Sorry - I couldn\'t find that stop. What\'s the SMS code?',
 													'Hmmm - I couldn\'t find that one. Can you repeat the SMS code?']);
-						askSimpleResponse(speech);
+						askSimpleResponseWithSuggestions(speech, ['What else can I ask?']);
 					} else if (stop_data.total > 1) {
 						// Show list of bus stops
-
+						askSimpleResponseWithSuggestions('That\'s strange, an error occurred and I found multiple bus stops with that SMS code.', ['What else can I ask?']);
 					} else if (stop_data.total == 1) {
 						// Get arrival predictions
 						url = 'https://api.tfl.gov.uk/StopPoint/' + stop_data.matches[0].id + '/Arrivals';
@@ -209,22 +217,33 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 						if(Array.isArray(stops_data)) {
 							stops_data.forEach(function (stop_pair) {
 								stop_pair.children.forEach(function (stop) {
-									options.push({
-										selectionKey: stop.id,
-										title: (stop.commonName + (stop.stopLetter ? ' (' + stop.stopLetter + ')' : '')),
-										synonyms: [stop.stopLetter, stop.indicator]
-									});
+									if(stop.modes == "bus") {
+										options.push({
+											selectionKey: stop.id,
+											title: (stop.commonName + (stop.stopLetter ? ' (' + stop.stopLetter + ')' : '')),
+											synonyms: (stop.stopLetter && stop.indicator ? [stop.stopLetter, stop.indicator] : [])
+										});
+									}
 								});
 							});
 						} else {
 							stops_data.children.forEach(function (stop) {
-								options.push({
-									selectionKey: stop.id,
-									title: (stop.commonName + ' (' + stop.stopLetter + ')'),
-									synonyms: [stop.stopLetter, stop.indicator]
-								});
+								if(stop.modes == "bus") {
+									options.push({
+										selectionKey: stop.id,
+										title: (stop.commonName + (stop.stopLetter ? ' (' + stop.stopLetter + ')' : '')),
+										synonyms: (stop.stopLetter && stop.indicator ? [stop.stopLetter, stop.indicator] : [])
+									});
+								}
 							});
 						};
+
+						if(options.length == 0) {
+							askSimpleResponseWithSuggestions('Sorry I couldn\'t find a bus stop there.', ['What can you do?']);
+						} else if(options.length == 1) {
+							url = 'https://api.tfl.gov.uk/StopPoint/' + options[0].id + '/Arrivals';
+							getJSON(url, processArrivalsData);
+						}
 
 						let speech = 'Which stop do you want arrivals information for?';
 						let title = 'Bus stops';
@@ -236,9 +255,9 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			});
 		} else {
 			// Prompt the user for a sms location code
-			let speech = randomFromArray(['What\'s the name of your bus stop or its 5 digit bus stop code? It\'s on the bus stop pole, marked "For next bus information"',
+			let speech = randomFromArray(['What\'s the name of your bus stop or its 5 digit bus stop code?',
 										'What\'s the name of the bus stop or its bus stop code? The bus stop code is the 5-digit number on a sign at the bus stop.',
-										'What\'s your bus stop\'s name it\'s bus stop code? It\'s the 5-digit number attached to the bus stop post.']);
+										'What\'s your bus stop\'s name or it\'s bus stop code on the bus stop pole, marked "For next bus information"?']);
 			let imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/dc/Quex_Road_%28Stop_N%29_Countdown_SMS_Code.jpg';
 			let imageDesc = 'Countdown SMS code example';
 
@@ -247,59 +266,64 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 	}
 
 	function processArrivalsData(arrivals_data) {
-		if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
-			let speech = 'Sure. Here are the next buses arriving at ' + arrivals_data[0].stationName;
-			let title = 'Bus arrivals';
-			let text = 'Unfortuantely live arrivals are not available at that stop at the moment.'
+		if(arrivals_data[0]) {
+			if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+				let speech = 'Sure. Here are the next buses arriving at ' + arrivals_data[0].stationName;
+				let title = 'Bus arrivals';
+				let text = 'Unfortuantely live arrivals are not available at that stop at the moment.'
 
-			if(arrivals_data.length != 0) {
-				text = '';
+				if(arrivals_data.length != 0) {
+					text = '';
 
-				title = arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop ' + arrivals_data[0].platformName + ')' : '');
+					title = arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop ' + arrivals_data[0].platformName + ')' : '');
 
-				// Order bus arrivals by timeToStation
-				arrivals_data.sort(function (a, b) {
-					return a.timeToStation - b.timeToStation;
-				});
+					// Order bus arrivals by timeToStation
+					arrivals_data.sort(function (a, b) {
+						return a.timeToStation - b.timeToStation;
+					});
 
-				// Loop through buses and add them to speech
-				let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_SCREEN;
-				for(let i = 0; i < busArrivalsReturned; i++) {
-					text += arrivals_data[i].lineName + ' to ' + arrivals_data[i].destinationName + ': ' + (arrivals_data[i].timeToStation < 90 ? 'Due  \n' : Math.round(arrivals_data[i].timeToStation / 60) + ' minutes  \n');
-				}
-			}
-
-			let destinationName = 'TfL Live arrivals';
-			// let suggestionUrl = 'https://tfl.gov.uk/bus/stop/' + stop_data.matches[0].id + '/' + stop_data.matches[0].name.toLowerCase().replace(/\s+/g, '-');
-			let suggestionUrl = 'https://tfl.gov.uk/travel-information/stations-stops-and-piers/';
-			askWithBasicCardAndLink(speech, title, text, destinationName, suggestionUrl);
-		} else {
-			let speech = 'Unfortuantely live arrivals are not available at that stop at the moment.';
-			if (arrivals_data.length != 0) {
-				speech = '<speak>At ' + arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop <say-as interpret-as="characters">' + arrivals_data[0].platformName + '</say-as>) ' : '');
-
-				// Order bus arrivals by timeToStation
-				arrivals_data.sort(function (a, b) {
-					return a.timeToStation - b.timeToStation;
-				});
-
-				// Loop through buses and add them to speech
-				let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN;
-				for(let i = 0; i < busArrivalsReturned; i++) {
-					speech += 'a ' + (arrivals_data[i].lineName.length > 2 ? '<say-as interpret-as="digits">' + arrivals_data[i].lineName + '</say-as>' : arrivals_data[i].lineName) + (arrivals_data[i].timeToStation < 90 ? ' is due' : ' is in ' + Math.round(arrivals_data[i].timeToStation / 60) + ' minutes');
-					if(i < busArrivalsReturned - 2) {
-						speech += ', ';
-					} else if (i == busArrivalsReturned - 2) {
-						speech += ' and ';
+					// Loop through buses and add them to speech
+					let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_SCREEN;
+					for(let i = 0; i < busArrivalsReturned; i++) {
+						text += arrivals_data[i].lineName + ' to ' + arrivals_data[i].destinationName + ': ' + (arrivals_data[i].timeToStation < 90 ? 'Due  \n' : Math.round(arrivals_data[i].timeToStation / 60) + ' minutes  \n');
 					}
 				}
-				speech += '. </speak>';
-			}
 
-			let destinationName = 'live arrivals';
-			// let suggestionUrl = 'https://tfl.gov.uk/bus/stop/' + stop_data.matches[0].id + '/' + stop_data.matches[0].name.toLowerCase().replace(/\s+/g, '-');
-			let suggestionUrl = 'https://tfl.gov.uk/travel-information/stations-stops-and-piers/';
-			askWithLink(speech, destinationName, suggestionUrl);
+				let destinationName = 'TfL Live arrivals';
+				// let suggestionUrl = 'https://tfl.gov.uk/bus/stop/' + stop_data.matches[0].id + '/' + stop_data.matches[0].name.toLowerCase().replace(/\s+/g, '-');
+				let suggestionUrl = 'https://tfl.gov.uk/travel-information/stations-stops-and-piers/';
+				let suggestions = ['Arrivals at ' + randomFromArray(['58848', '52334', '52954', 'Bunhill Row', 'Fitzalan Street', 'Tyers Street']), 'How\'s the ' + Math.floor(Math.random() * (99) + 1) + ' bus?', 'What else can I ask?'];
+				askWithBasicCardAndLinkAndSuggestions(speech, title, text, destinationName, suggestionUrl, suggestions);
+			} else {
+				let speech = 'Unfortuantely live arrivals are not available at that stop at the moment.';
+				if (arrivals_data.length != 0) {
+					speech = '<speak>At ' + arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop <say-as interpret-as="characters">' + arrivals_data[0].platformName + '</say-as>) ' : '');
+
+					// Order bus arrivals by timeToStation
+					arrivals_data.sort(function (a, b) {
+						return a.timeToStation - b.timeToStation;
+					});
+
+					// Loop through buses and add them to speech
+					let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN;
+					for(let i = 0; i < busArrivalsReturned; i++) {
+						speech += 'a ' + arrivals_data[i].lineName + (arrivals_data[i].timeToStation < 90 ? ' is due' : ' is in ' + Math.round(arrivals_data[i].timeToStation / 60) + ' minutes');
+						if(i < busArrivalsReturned - 2) {
+							speech += ', ';
+						} else if (i == busArrivalsReturned - 2) {
+							speech += ' and ';
+						}
+					}
+					speech += '. </speak>';
+				}
+
+				let destinationName = 'live arrivals';
+				// let suggestionUrl = 'https://tfl.gov.uk/bus/stop/' + stop_data.matches[0].id + '/' + stop_data.matches[0].name.toLowerCase().replace(/\s+/g, '-');
+				let suggestionUrl = 'https://tfl.gov.uk/travel-information/stations-stops-and-piers/';
+				askWithLink(speech, destinationName, suggestionUrl);
+			}
+		} else {
+			askSimpleResponseWithSuggestions('Live arrival data is not available for that stop.', ['What else can you do?']);
 		}
 	}
 
@@ -351,7 +375,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				app.setContext('emissions_surcharge_tryagain');
 				let destinationName = 'TfL Toxicity Charge';
 				let suggestionUrl = 'https://tfl.gov.uk/modes/driving/emissions-surcharge';
-				askWithLink(speech, destinationName, suggestionUrl);
+				askWithLinkAndSuggestions(speech, destinationName, suggestionUrl, ['Yes', 'No']);
 			});
 		} else {
 			// Ask for numberplate
@@ -366,7 +390,12 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 
 	function carouselSelect(app) {
 		// Get the user's selection
-		let param = app.getContextArgument('actions_intent_option', 'OPTION').value;
+		let param = app.getContextArgument('actions_intent_option', 'OPTION');
+		if (param) {
+			param = param.value;
+		} else {
+			app.ask('Sorry, I didn\'t understand that. What is it that you want to do?');
+		}
 
 		// Compare the user's selections to each of the item's keys
 		if (param === 'bus_arrivals') {
@@ -379,7 +408,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			minicabLookup(app);
 		} else if (param === 'emissions_surcharge') {
 			app.setContext('emissions_surcharge_numberplate');
-			askSimpleResponse('Sure. What\'s your registration number?');
+			askSimpleResponseWithSuggestions('Sure. What\'s your registration number?', [randomFromArray(['LT61 BHT', 'BX15 KXG', 'LV13 ZTR', 'BU12 AWM', 'WM57 DZL', 'YD65 VYH'])]);
 		} else {
 			app.ask('Sorry, I didn\'t understand that. What is it that you want to do?');
 		}
@@ -407,11 +436,34 @@ exports.tripBot = functions.https.onRequest((request, response) => {
         }
     }
 
+	function askSimpleResponseWithSuggestions(speech, suggestions) {
+        if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+            app.ask(app.buildRichResponse()
+                .addSimpleResponse(speech)
+				.addSuggestions(suggestions)
+            );
+        } else {
+            app.ask(speech);
+        }
+    }
+
     function askWithLink(speech, destinationName, suggestionUrl) {
         if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
             app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech)
                 .addSuggestionLink(destinationName, suggestionUrl)
+            );
+        } else {
+            app.ask(speech);
+        }
+    }
+
+	function askWithLinkAndSuggestions(speech, destinationName, suggestionUrl, suggestions) {
+        if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+            app.ask(app.buildRichResponse()
+                .addSimpleResponse(speech)
+                .addSuggestionLink(destinationName, suggestionUrl)
+				.addSuggestions(suggestions)
             );
         } else {
             app.ask(speech);
@@ -443,6 +495,17 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			    .setTitle(title)
 			    .addButton(destinationName, suggestionUrl)
 		    )
+		);
+	}
+
+	function askWithBasicCardAndLinkAndSuggestions(speech, title, text, destinationName, suggestionUrl, suggestions) {
+		app.ask(app.buildRichResponse()
+			.addSimpleResponse(speech)
+			.addBasicCard(app.buildBasicCard(text)
+				.setTitle(title)
+				.addButton(destinationName, suggestionUrl)
+			)
+			.addSuggestions(suggestions)
 		);
 	}
 });
