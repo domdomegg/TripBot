@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1920"
+   height="1080"
+   viewBox="0 0 508 285.75"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="tbbanner.svg"
+   inkscape:version="0.92.1 r15371"
+   inkscape:export-filename="/home/adam/thbanner.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
+  <defs
+     id="defs2">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4505">
+      <stop
+         style="stop-color:#651fff;stop-opacity:1;"
+         offset="0"
+         id="stop4501" />
+      <stop
+         style="stop-color:#b51fff;stop-opacity:0"
+         offset="1"
+         id="stop4503" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4505"
+       id="linearGradient4656"
+       x1="459.24106"
+       y1="39.598213"
+       x2="30.205513"
+       y2="323.52509"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="998.02876"
+     inkscape:cy="419.12881"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="3773"
+     inkscape:window-height="2090"
+     inkscape:window-x="67"
+     inkscape:window-y="34"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-11.250003)">
+    <rect
+       style="opacity:1;fill:#3f1dcb;fill-opacity:1;stroke:none;stroke-width:0.19878997;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:2.26771665;stroke-opacity:1"
+       id="rect4646"
+       width="508"
+       height="285.75"
+       x="0"
+       y="11.25"
+       ry="0.011824436" />
+    <rect
+       ry="0.011824436"
+       y="11.25"
+       x="0"
+       height="285.75"
+       width="508"
+       id="rect4648"
+       style="opacity:1;fill:url(#linearGradient4656);fill-opacity:1;stroke:none;stroke-width:0.19878997;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:2.26771665;stroke-opacity:1" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:61.43393326px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.53584838"
+       x="15.444964"
+       y="76.824684"
+       id="text4660"><tspan
+         sodipodi:role="line"
+         x="15.444964"
+         y="76.824684"
+         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:61.43393326px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:1.53584838"
+         id="tspan4666">TravelHelper</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="117.59859"
+       y="60.1992"
+       id="text4670"><tspan
+         sodipodi:role="line"
+         id="tspan4668"
+         x="117.59859"
+         y="60.1992"
+         style="stroke-width:0.26458332"> </tspan></text>
+    <text
+       id="text4682"
+       y="129.86363"
+       x="15.478709"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:33.02423477px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.82560837"
+       xml:space="preserve"><tspan
+         id="tspan4680"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:33.02423477px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.82560837"
+         y="129.86363"
+         x="15.478709"
+         sodipodi:role="line">Helping Londoners find their</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:33.02423477px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.82560837"
+         y="171.14392"
+         x="15.478709"
+         sodipodi:role="line"
+         id="tspan4684">transport information</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.4206132"
+       x="15.91258"
+       y="223.89282"
+       id="text4690"><tspan
+         sodipodi:role="line"
+         x="15.91258"
+         y="223.89282"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.4206132"
+         id="tspan4698">&quot;Ok Google, ask TravelHelper</tspan></text>
+    <text
+       id="text4706"
+       y="223.89282"
+       x="257.74176"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.38046649;stroke:none;stroke-width:0.4206132;"
+       xml:space="preserve"><tspan
+         id="tspan4704"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.4206132;fill-opacity:0.38046649;"
+         y="223.89282"
+         x="257.74176"
+         sodipodi:role="line">if the central line has delays&quot;</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.38046649;stroke:none;stroke-width:0.4206132;"
+       x="257.74176"
+       y="245.05951"
+       id="text4710"><tspan
+         sodipodi:role="line"
+         x="257.74176"
+         y="245.05951"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.4206132;fill-opacity:0.38046649;"
+         id="tspan4712">if the 16 bus is ok&quot;</tspan></text>
+    <text
+       id="text4718"
+       y="266.22617"
+       x="257.74176"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.38046649;stroke:none;stroke-width:0.4206132;"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.82447624px;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.4206132;fill-opacity:0.38046649;"
+         y="266.22617"
+         x="257.74176"
+         sodipodi:role="line"
+         id="tspan4720">how the air quality is&quot;</tspan></text>
+  </g>
+</svg>
