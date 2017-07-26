@@ -73,12 +73,13 @@ exports.tripBot = functions.https.onRequest((request, response) => {
                 askWithList(speech, title, options);
             });
         } else {
-            askSimpleResponseWithSuggestions('Unfortunately I can\'t get you nearby minicab operators without your location.', ['What else can I ask?']);
+            askSimpleResponseWithSuggestions('Unfortunately I can\'t get you nearby minicab operators without your location. What do you want to do now?', ['Tube status', 'Bus arrivals at 58848', 'What can I ask?']);
         }
     }
 
     function minicabCall (app) {
-        askSimpleResponseWithSuggestions("Their number is " + app.getSelectedOption() + ". Unfortuantely I can't call it for you yet - sorry!", ['What else can I ask?']);
+		let suggestionUrl = 'https://domdomegg.github.io/linkgenerator?href=tel%3A%2B' + app.getSelectedOption() + '&buttontext=Call%20Minicab%20Operator';
+        askWithLinkAndSuggestions("Their number is " + app.getSelectedOption() + ". What would you like to do now?", 'Phone', suggestionUrl, ['Tube status', 'What else can I ask?', 'Exit']);
     }
 
     function lineStatus (app) {
