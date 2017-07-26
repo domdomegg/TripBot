@@ -30,10 +30,11 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				connector = 'but';
 			}
 
-            speech += 'Currently pollution is ' + pollution[0] + (pollution[1] != "none" ? ', ' + connector + ' is forecast to be ' + pollution[1] : '') + '. ' + data.currentForecast[1].forecastSummary + '.';
-            let destinationName = 'Londonair Forecast';
+            speech += 'Currently pollution is ' + pollution[0] + (pollution[1] != "none" ? ', ' + connector + ' is forecast to be ' + pollution[1] : '') + '. ' + data.currentForecast[1].forecastSummary + '. ';
+			speech += 'What else would you like to know about?'
+			let destinationName = 'Londonair Forecast';
             let suggestionUrl = 'http://www.londonair.org.uk/LondonAir/Forecast/';
-			let suggestions = ['Do I pay the T-Charge?', 'What else can I ask?'];
+			let suggestions = ['Do I pay the T-Charge?', 'Tube status', 'What else can I ask?'];
 
             askWithLinkAndSuggestions(speech, destinationName, suggestionUrl, suggestions);
         });
@@ -126,7 +127,15 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				text += line.reason + '  \n  \n';
 			});
 
-			if(goodServiceLines.length > 0) {
+			if (url == 'https://api.tfl.gov.uk/Line/Mode/tube%2Ctflrail%2Cdlr%2Coverground/Status?detail=false' && goodServiceLines.length > 0) {
+				if(badServiceLines.length == 0) {
+					text = 'There is a good service on all London Underground lines.';
+					speech = 'There is a good service on all London Underground lines.';
+				} else {
+					text += 'There is a good service on all other London Underground lines.'
+					speech += 'There is a good service on all other London Underground lines.';
+				}
+			} else if (goodServiceLines.length > 0) {
 				// Good service lines
 	            speech += 'There is a good service on the '
 	            goodServiceLines = goodServiceLines.map(function (line) {
@@ -148,9 +157,9 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 
 			speech = speech.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 			if (busLines.length + undergroundLines.length == 1) {
-				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for that line:</sub></speak>';
+				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for that line. What would you like to do now?</sub></speak>';
 			} else {
-				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for those lines:</sub></speak>';
+				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for those lines. What else would you like to do?</sub></speak>';
 			}
 
             // URL: use default, but if only one bus input link to that bus's page
@@ -167,7 +176,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
                 }
             }
 
-			askWithBasicCardAndLinkAndSuggestions(speech, title, text, destinationName, suggestionUrl, ['How\'s the ' + Math.floor(Math.random() * (99) + 1) + ' bus?', randomFromArray(['Central line status', 'Victoria line status', 'District & Northern lines']), 'What else can I ask?']);
+			askWithBasicCardAndLinkAndSuggestions(speech, title, text, destinationName, suggestionUrl, ['How\'s the ' + Math.floor(Math.random() * (99) + 1) + ' bus?', randomFromArray(['Central line status', 'Victoria line status', 'District & Northern lines']), 'Help', 'Exit']);
         });
     }
 
