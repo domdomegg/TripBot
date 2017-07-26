@@ -79,8 +79,8 @@ exports.tripBot = functions.https.onRequest((request, response) => {
     }
 
     function minicabCall (app) {
-		let suggestionUrl = 'https://domdomegg.github.io/linkgenerator?href=tel%3A%2B' + app.getSelectedOption() + '&buttontext=Call%20Minicab%20Operator';
-        askWithLinkAndSuggestions("Their number is " + app.getSelectedOption() + ". What would you like to do now?", 'Phone', suggestionUrl, ['Tube status', 'What else can I ask?', 'Exit']);
+		let suggestionUrl = 'https://domdomegg.github.io/linkgenerator?href=tel%3A' + app.getSelectedOption() + '&buttontext=Call%20Minicab%20Operator';
+        askWithLinkAndSuggestions("Their number is " + app.getSelectedOption() + ". What would you like to do now?", 'Phone', suggestionUrl, ['Tube status', 'Help', 'Exit']);
     }
 
     function lineStatus (app) {
@@ -157,9 +157,9 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 
 			speech = speech.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 			if (busLines.length + undergroundLines.length == 1) {
-				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for that line. What would you like to do now?</sub></speak>';
+				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for that line. </sub>What would you like to do now?</speak>';
 			} else {
-				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for those lines. What else would you like to do?</sub></speak>';
+				speech = '<speak><sub alias="' + speech + '">Sure. Here are the latest status updates for those lines. </sub>What else would you like to do?</speak>';
 			}
 
             // URL: use default, but if only one bus input link to that bus's page
@@ -193,8 +193,8 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				if (busStopSms) {
 					if (busStopSms == "87287") {
 						askWithImage(randomFromArray([
-							'Sorry, I need the other 5 digit number on that sign for bus arrivals (the one on the white background).',
-							'I need the other 5 digit number - on the white background.'
+							'Sorry, I need the other 5 digit number on that sign for bus arrivals (the one on the white background). What is it?',
+							'I need the other 5 digit number - on the white background. What is it?'
 						]), 'Bus stop code example', 'https://upload.wikimedia.org/wikipedia/commons/d/dc/Quex_Road_%28Stop_N%29_Countdown_SMS_Code.jpg');
 					}
 
@@ -202,10 +202,10 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 						// Couldn't find it
 						let speech = randomFromArray(['Sorry - I couldn\'t find that stop. What\'s the SMS code?',
 													'Hmmm - I couldn\'t find that one. Can you repeat the SMS code?']);
-						askSimpleResponseWithSuggestions(speech, ['What else can I ask?']);
+						askSimpleResponseWithSuggestions(speech, ['Tube status', 'What else can I ask?']);
 					} else if (stop_data.total > 1) {
 						// Show list of bus stops
-						askSimpleResponseWithSuggestions('That\'s strange, an error occurred and I found multiple bus stops with that SMS code.', ['What else can I ask?']);
+						askSimpleResponseWithSuggestions('That\'s strange, an error occurred and I found multiple bus stops with that SMS code. What else should we try?', ['Tube status', 'Air quality', 'What else can I ask?']);
 					} else if (stop_data.total == 1) {
 						// Get arrival predictions
 						url = 'https://api.tfl.gov.uk/StopPoint/' + stop_data.matches[0].id + '/Arrivals';
@@ -249,7 +249,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 						};
 
 						if (options.length == 0) {
-							askSimpleResponseWithSuggestions('Sorry I couldn\'t find a bus stop there.', ['What can you do?']);
+							askSimpleResponseWithSuggestions('Sorry I couldn\'t find a bus stop there. What do you want to do now?', ['Tube status', 'Air quality', 'Help', 'Exit']);
 						} else if (options.length == 1) {
 							url = 'https://api.tfl.gov.uk/StopPoint/' + options[0].id + '/Arrivals';
 							getJSON(url, processArrivalsData);
@@ -278,7 +278,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 	function processArrivalsData(arrivals_data) {
 		if (arrivals_data[0]) {
 			if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
-				let speech = 'Sure. Here are the next buses arriving at ' + arrivals_data[0].stationName;
+				let speech = 'Sure. Here are the next buses arriving at ' + arrivals_data[0].stationName + '. What would you like to do now?';
 				let title = 'Bus arrivals';
 				let text = 'Unfortuantely live arrivals are not available at that stop at the moment.'
 
@@ -305,7 +305,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				let suggestions = ['Arrivals at ' + randomFromArray(['58848', '52334', '52954', 'Bunhill Row', 'Fitzalan Street', 'Tyers Street']), 'How\'s the ' + Math.floor(Math.random() * (99) + 1) + ' bus?', 'What else can I ask?'];
 				askWithBasicCardAndLinkAndSuggestions(speech, title, text, destinationName, suggestionUrl, suggestions);
 			} else {
-				let speech = 'Unfortuantely live arrivals are not available at that stop at the moment.';
+				let speech = 'Unfortuantely live arrivals are not available at that stop at the moment. What else would you like to do?';
 				if (arrivals_data.length != 0) {
 					speech = '<speak>At ' + arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop <say-as interpret-as="characters">' + arrivals_data[0].platformName + '</say-as>) ' : '');
 
@@ -324,7 +324,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 							speech += ' and ';
 						}
 					}
-					speech += '. </speak>';
+					speech += '. What would you like to do now?</speak>';
 				}
 
 				let destinationName = 'live arrivals';
@@ -333,7 +333,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				askWithLink(speech, destinationName, suggestionUrl);
 			}
 		} else {
-			askSimpleResponseWithSuggestions('Live arrival data is not available for that stop.', ['What else can you do?']);
+			askSimpleResponseWithSuggestions('Live arrival data is not available for that stop. What would you like to do?', ['Line statuses', 'Air quality', 'What else can you do?']);
 		}
 	}
 
@@ -352,7 +352,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			numberplate = numberplate.replace(/\s/g, '');
 
 			getJSON('https://api.tfl.gov.uk/Vehicle/EmissionSurcharge?vrm=' + numberplate, function (car) {
-				let speech = 'I couldn\'t find details for your vehicle';
+				let speech = 'I couldn\'t find details for your vehicle. Do you want to try again?';
 
 				if (car.compliance) {
 					speech = '';
@@ -385,7 +385,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 				app.setContext('emissions_surcharge_tryagain');
 				let destinationName = 'TfL Toxicity Charge';
 				let suggestionUrl = 'https://tfl.gov.uk/modes/driving/emissions-surcharge';
-				askWithLinkAndSuggestions(speech, destinationName, suggestionUrl, ['Yes', 'No']);
+				askWithLinkAndSuggestions(speech, destinationName, suggestionUrl, ['Yes', 'No', 'Exit']);
 			});
 		} else {
 			// Ask for numberplate
