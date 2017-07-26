@@ -7,7 +7,7 @@
     </head>
     <body>
         <noscript>This tool requires JavaScript to work.</noscript>
-        <h3><a id="button" href="#"></a></h3>
+        <h1><a id="button" href="#"></a></h1>
         <script>
             // By BrunoLM, https://stackoverflow.com/a/3855394
             var qs = (function(a) {
@@ -32,14 +32,30 @@
                     document.getElementById('button').innerHTML = 'Click here';
                 if (qs['title'])
                     document.title = qs['buttontext'];
+                if (qs['textcolor'])
+                    document.getElementById('button').style.color = '#' + qs['textcolor'];
+                if (qs['bgcolor'])
+                    document.getElementById('button').style.backgroundColor = '#' + qs['bgcolor'];
             } else {
                 document.write('Missing href attribute');
             }
         </script>
+        <style>
+            body, html {
+                margin: 0;
+            }
+            a {
+                padding: 30px;
+                background: #651fff;
+                color: #fff;
+                display: block;
+                text-decoration: none;
+            }
+        </style>
     </body>
     <!-- USAGE:
         Use this address to genereate a link, like so:
-        linkgenerator.html?href=tel%3A%2B442070313000&buttontext=Call%20Google%20UK&title=Google%20UK
+        linkgenerator.html?href=tel%3A%2B442070313000&buttontext=Call%20Google%20UK&title=Google%20UK&bgcolor=4285f4&color=ffffff
 
         Only the href is absolutely required
 
