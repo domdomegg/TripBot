@@ -17,7 +17,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 							lowerFirstChar(data.currentForecast[1].forecastBand)]
 
 			let speech = '';
-			if(pollution[0] == "low" && pollution[1] == "low") {
+			if (pollution[0] == "low" && pollution[1] == "low") {
 				speech += randomFromArray(['Breathe easy! ', 'Good news! ', 'Hooray! '])
 			} else if (pollution[0] == "low" && pollution[1] != "low" && pollution[1] != "none") {
 				speech += randomFromArray(['It\'s good now at least. ', 'There\'s good news and bad news. ']);
@@ -26,7 +26,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			}
 
 			let connector = 'and';
-			if(pollution[0] != pollution[1]) {
+			if (pollution[0] != pollution[1]) {
 				connector = 'but';
 			}
 
@@ -84,7 +84,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
     }
 
     function lineStatus (app) {
-		if(app.getRawInput().toUpperCase().match(/^([A-HK-PRSVWY][A-HJ-PR-Y])\s?([0][2-9]|[1-9][0-9])\s?[A-HJ-PR-Z]{3}$/)) {
+		if (app.getRawInput().toUpperCase().match(/^([A-HK-PRSVWY][A-HJ-PR-Y])\s?([0][2-9]|[1-9][0-9])\s?[A-HJ-PR-Z]{3}$/)) {
 			emissionsSurcharge(app);
 			return false;
 		}
@@ -93,7 +93,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
         let undergroundLines = app.getArgument('underground-line') || [];
 
 		let url = 'https://api.tfl.gov.uk/Line/Mode/tube%2Ctflrail%2Cdlr%2Coverground/Status?detail=false';
-		if(busLines.length + undergroundLines.length > 0) {
+		if (busLines.length + undergroundLines.length > 0) {
             url = 'https://api.tfl.gov.uk/Line/' + [undergroundLines,busLines].join() +'/Status?detail=false';
 		}
 
@@ -102,7 +102,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
             let badServiceLines = [];
             let goodServiceLines = [];
             data.forEach(function (line) {
-                if(line.lineStatuses[0].statusSeverityDescription == 'Good Service') {
+                if (line.lineStatuses[0].statusSeverityDescription == 'Good Service') {
                     goodServiceLines.push({
                         name: line.name,
                         modeName: line.modeName
@@ -128,7 +128,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			});
 
 			if (url == 'https://api.tfl.gov.uk/Line/Mode/tube%2Ctflrail%2Cdlr%2Coverground/Status?detail=false' && goodServiceLines.length > 0) {
-				if(badServiceLines.length == 0) {
+				if (badServiceLines.length == 0) {
 					text = 'There is a good service on all London Underground lines.';
 					speech = 'There is a good service on all London Underground lines.';
 				} else {
@@ -141,7 +141,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 	            goodServiceLines = goodServiceLines.map(function (line) {
 	                return line.name + ((line.modeName == 'tube') ? ' line' : (line.modeName == 'bus') ? ' bus' : '');
 	            });
-	            if(goodServiceLines.length > 1) {
+	            if (goodServiceLines.length > 1) {
 	                speech += goodServiceLines.slice(0, -1).join(', ') + ' and the ' + goodServiceLines[goodServiceLines.length - 1];
 	            } else {
 	                speech += goodServiceLines[0];
@@ -166,11 +166,11 @@ exports.tripBot = functions.https.onRequest((request, response) => {
             // If only multiple buses, link to the bus status page
             let destinationName = 'TfL Status Updates';
             let suggestionUrl = 'https://tfl.gov.uk/tube-dlr-overground/status/';
-            if(undergroundLines.length == 0) {
-                if(busLines.length == 1) {
+            if (undergroundLines.length == 0) {
+                if (busLines.length == 1) {
                     destinationName = 'TfL ' + busLines[0].toUpperCase() + ' Bus Status';
                     suggestionUrl = 'https://tfl.gov.uk/bus/status/?input=' + busLines[0];
-                } else if(busLines.length > 1) {
+                } else if (busLines.length > 1) {
                     destinationName = 'TfL Bus Updates';
                     suggestionUrl = 'https://tfl.gov.uk/bus/status/';
                 }
@@ -186,12 +186,12 @@ exports.tripBot = functions.https.onRequest((request, response) => {
         let busStopAddress = app.getArgument('bus-stop-address');
 
 		// Check we know where we are (or at least think we do)
-		if(busStopSms || busStopAddress) {
+		if (busStopSms || busStopAddress) {
 			let url = 'https://api.tfl.gov.uk/StopPoint/Search/' + (busStopSms ? busStopSms : busStopAddress) + '?modes=bus';
 
 			getJSON(url, function (stop_data) {
-				if(busStopSms) {
-					if(busStopSms == "87287") {
+				if (busStopSms) {
+					if (busStopSms == "87287") {
 						askWithImage(randomFromArray([
 							'Sorry, I need the other 5 digit number on that sign for bus arrivals (the one on the white background).',
 							'I need the other 5 digit number - on the white background.'
@@ -224,10 +224,10 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 					// Get individual stops data
 					url = 'https://api.tfl.gov.uk/StopPoint/' + stop_pairs.join() + '?includeCrowdingData=false';
 					getJSON(url, function (stops_data) {
-						if(Array.isArray(stops_data)) {
+						if (Array.isArray(stops_data)) {
 							stops_data.forEach(function (stop_pair) {
 								stop_pair.children.forEach(function (stop) {
-									if(stop.modes == "bus") {
+									if (stop.modes == "bus") {
 										options.push({
 											selectionKey: stop.id,
 											title: (stop.commonName + (stop.stopLetter ? ' (' + stop.stopLetter + ')' : '')),
@@ -238,7 +238,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 							});
 						} else {
 							stops_data.children.forEach(function (stop) {
-								if(stop.modes == "bus") {
+								if (stop.modes == "bus") {
 									options.push({
 										selectionKey: stop.id,
 										title: (stop.commonName + (stop.stopLetter ? ' (' + stop.stopLetter + ')' : '')),
@@ -248,9 +248,9 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 							});
 						};
 
-						if(options.length == 0) {
+						if (options.length == 0) {
 							askSimpleResponseWithSuggestions('Sorry I couldn\'t find a bus stop there.', ['What can you do?']);
-						} else if(options.length == 1) {
+						} else if (options.length == 1) {
 							url = 'https://api.tfl.gov.uk/StopPoint/' + options[0].id + '/Arrivals';
 							getJSON(url, processArrivalsData);
 						}
@@ -276,13 +276,13 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 	}
 
 	function processArrivalsData(arrivals_data) {
-		if(arrivals_data[0]) {
+		if (arrivals_data[0]) {
 			if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
 				let speech = 'Sure. Here are the next buses arriving at ' + arrivals_data[0].stationName;
 				let title = 'Bus arrivals';
 				let text = 'Unfortuantely live arrivals are not available at that stop at the moment.'
 
-				if(arrivals_data.length != 0) {
+				if (arrivals_data.length != 0) {
 					text = '';
 
 					title = arrivals_data[0].stationName + (arrivals_data[0].platformName ? ' (Stop ' + arrivals_data[0].platformName + ')' : '');
@@ -318,7 +318,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 					let busArrivalsReturned = arrivals_data.length < MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN ? arrivals_data.length : MAX_BUS_ARRIVALS_RETURNED_NO_SCREEN;
 					for(let i = 0; i < busArrivalsReturned; i++) {
 						speech += 'a ' + arrivals_data[i].lineName + (arrivals_data[i].timeToStation < 90 ? ' is due' : ' is in ' + Math.round(arrivals_data[i].timeToStation / 60) + ' minutes');
-						if(i < busArrivalsReturned - 2) {
+						if (i < busArrivalsReturned - 2) {
 							speech += ', ';
 						} else if (i == busArrivalsReturned - 2) {
 							speech += ' and ';
@@ -345,7 +345,7 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 
 	function emissionsSurcharge(app) {
 		let numberplate = app.getRawInput().toUpperCase().match(/^([A-HK-PRSVWY][A-HJ-PR-Y])\s?([0][2-9]|[1-9][0-9])\s?[A-HJ-PR-Z]{3}$/);
-		if(numberplate) {
+		if (numberplate) {
 			numberplate = numberplate[0];
 
 			// Remove spaces
@@ -354,9 +354,9 @@ exports.tripBot = functions.https.onRequest((request, response) => {
 			getJSON('https://api.tfl.gov.uk/Vehicle/EmissionSurcharge?vrm=' + numberplate, function (car) {
 				let speech = 'I couldn\'t find details for your vehicle';
 
-				if(car.compliance) {
+				if (car.compliance) {
 					speech = '';
-					if(car.make && car.model) {
+					if (car.make && car.model) {
 						speech += 'Your ' + toTitleCase(car.make + ' ' + car.model) + ' is ';
 					} else {
 						speech += 'Your car is ';
